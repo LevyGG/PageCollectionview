@@ -8,11 +8,6 @@
 
 import UIKit
 
-fileprivate var headerAndFooter = CGFloat(40)  // Header和Footer宽度相等
-fileprivate let itemSpacing = CGFloat(20)
-fileprivate var itemHeight = CGFloat(200)
-fileprivate var itemWidth = CGFloat(UIScreen.main.bounds.size.width - 80 - 30) // 屏幕宽 - headerAndFooter*2 - view距离边缘（15）*2
-
 class ViewController: UIViewController {
 
     @IBOutlet weak var collectionView: UICollectionView!
@@ -33,25 +28,64 @@ class ViewController: UIViewController {
         collectionView.collectionViewLayout = self.myLayout!
         collectionView.reloadData()
         
+        self.steper.value = Double(itemSpacing)
+        self.cellSpaceing_Label.text = "\(self.steper.value)"
+        
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        self.topCollectionViewFlow() // 不能在viewdidload里调用，因为self.collectionView的高度未确定
+    }
+    
+    private func topCollectionViewFlow() {
+        itemHeight = self.collectionView.bounds.size.height
+        self.myLayout?.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        self.myLayout?.itemSize = CGSize(width: itemWidth, height: itemHeight)
+        self.myLayout?.headerReferenceSize = CGSize(width: headerAndFooter, height: 0)
+        self.myLayout?.footerReferenceSize = CGSize(width: headerAndFooter, height: 0)
+        self.myLayout?.minimumLineSpacing = itemSpacing
+        self.myLayout?.scrollDirection = .horizontal
+        
+        self.collectionView.decelerationRate = UIScrollViewDecelerationRateFast
+        self.collectionView.reloadData()
+    }
     private func initArrays() {
-        for i in 0...5 {
+        for i in 0...8 {
             let ii = "第" + "\(i)" + "个"
             self.modelArray.append(ii)
         }
     }
     
+    
+    @IBOutlet weak var cellSpaceing_Label: UILabel!
+    @IBOutlet weak var steper: UIStepper!
+    @IBAction func steping(_ sender: UIStepper) {
+        itemSpacing = CGFloat(sender.value)
+        
+        headerAndFooter = itemSpacing*2
+        itemWidth = CGFloat(UIScreen.main.bounds.size.width - headerAndFooter*2 - 16)
+        self.topCollectionViewFlow()
+        self.cellSpaceing_Label.text = "\(self.steper.value)"
+        self.collectionView.reloadData()
+        
+    }
+    
+    
+    
 }
 
+
+fileprivate var itemSpacing = CGFloat(30) // cell之间的间距
+fileprivate var headerAndFooter = itemSpacing*2  // 必须为itemSpacing的2倍，否则不能居中显示。Header和Footer宽度相等
+fileprivate var itemHeight = CGFloat(100)
+fileprivate var itemWidth = CGFloat(UIScreen.main.bounds.size.width - headerAndFooter*2 - 16) // 屏幕宽 - headerAndFooter*2 - view距离边缘（15）*2
 
 // MARK: - 滚动代理
 extension ViewController:UIScrollViewDelegate { // 这里是分页滚动的关键代码
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let pageWidth = Float((UIScreen.main.bounds.size.width - 85 - 30 - 40))
+        let pageWidth = Float((itemWidth + headerAndFooter/2))
         let targetXContentOffset = Float(targetContentOffset.pointee.x)
-        let contentWidth = Float(self.collectionView.contentSize.width + 80 )
-        print("contentWidth:",contentWidth)
+        let contentWidth = Float(self.collectionView.contentSize.width + headerAndFooter*2 )
         var newPage = Float(self.currentpage)
         if velocity.x == 0 {
             newPage = floor( (targetXContentOffset - Float(pageWidth) / 2) / Float(pageWidth)) + 1.0
