@@ -50,7 +50,7 @@ class ViewController: UIViewController {
         self.collectionView.reloadData()
     }
     private func initArrays() {
-        for i in 0...8 {
+        for i in 0...5 {
             let ii = "第" + "\(i)" + "个"
             self.modelArray.append(ii)
         }
@@ -75,10 +75,10 @@ class ViewController: UIViewController {
 }
 
 
-fileprivate var itemSpacing = CGFloat(30) // cell之间的间距
+fileprivate var itemSpacing = CGFloat(20) // cell之间的间距
 fileprivate var headerAndFooter = itemSpacing*2  // 必须为itemSpacing的2倍，否则不能居中显示。Header和Footer宽度相等
 fileprivate var itemHeight = CGFloat(100)
-fileprivate var itemWidth = CGFloat(UIScreen.main.bounds.size.width - headerAndFooter*2 - 16) // 屏幕宽 - headerAndFooter*2 - view距离边缘（15）*2
+fileprivate var itemWidth = CGFloat(UIScreen.main.bounds.size.width - headerAndFooter*2 - 16) // 屏幕宽 - headerAndFooter*2 - view距离边缘（8）*2
 
 // MARK: - 滚动代理
 extension ViewController:UIScrollViewDelegate { // 这里是分页滚动的关键代码
@@ -93,9 +93,13 @@ extension ViewController:UIScrollViewDelegate { // 这里是分页滚动的关�
             newPage = Float(velocity.x > 0 ? self.currentpage + 1 : self.currentpage - 1)
             if newPage < 0 {
                 newPage = 0
-            }
-            if (newPage > contentWidth / pageWidth) {
-                newPage = ceil(contentWidth / pageWidth) - 1.0
+            }else{
+                if (newPage >= floor(contentWidth / pageWidth)) { // 滑到底的时候
+                    newPage = floor(contentWidth / pageWidth) - 1.0
+                }else{
+                    newPage = Float(velocity.x > 0 ? self.currentpage + 1 : self.currentpage - 1)
+
+                }
             }
         }
         self.currentpage = Int(newPage)
